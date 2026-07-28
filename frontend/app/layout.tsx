@@ -19,9 +19,12 @@ export default function RootLayout({
           <Link href="/" className="font-bold text-xl text-white tracking-wide">
             Backlink <span className="text-blue-500">Hunter AI</span>
           </Link>
-          <div className="flex gap-4">
-            <Link href="/seo-audit" className="px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded-lg font-medium text-sm transition">
-              SEO Audit Dashboard
+          <div className="flex items-center gap-3 md:gap-6">
+            <Link href="/seo-audit" className="px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded-lg font-medium text-sm transition shadow-sm shadow-blue-600/30">
+              SEO Audit
+            </Link>
+            <Link href="/backlinks" className="px-4 py-2 bg-slate-900 hover:bg-slate-800 border border-slate-700 rounded-lg font-medium text-sm transition text-slate-200 hover:text-white">
+              Backlink Directory
             </Link>
           </div>
         </header>

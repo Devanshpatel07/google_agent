@@ -17,7 +17,7 @@ app = FastAPI(title="Backlink Hunter AI")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -28,6 +28,10 @@ async def on_startup():
     async with engine.begin() as conn:
         # Auto-create tables for local simple scaffold without requiring alembic run initially
         await conn.run_sync(Base.metadata.create_all)
+
+@app.get("/")
+async def root():
+    return {"status": "ok", "message": "Backlink Hunter AI Backend API", "docs": "/docs"}
 
 app.include_router(router, prefix="/api")
 

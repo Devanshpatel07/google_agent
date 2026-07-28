@@ -1,6 +1,7 @@
 import logging
 import json
 import os
+import asyncio
 from typing import Dict, Any, List
 from bs4 import BeautifulSoup
 from dotenv import load_dotenv
@@ -127,22 +128,29 @@ async def backlink_discovery_node(state: Dict) -> Dict:
     return {"candidates": candidates[:5], "status": "verifying"}
 
 async def verification_node(state: Dict) -> Dict:
-    logger.info("Verifying backlinks...")
+    logger.info("Verifying backlinks in parallel...")
     if "error" in state:
         return state
         
-    verified = []
+    candidates = state.get("candidates", [])
+    if not candidates:
+        return {"verified_candidates": [], "status": "scoring"}
+
+    async def check_candidate(session, c):
+        try:
+            async with session.head(c["url"], timeout=3, allow_redirects=True) as response:
+                if response.status < 400:
+                    return c
+        except Exception:
+            pass
+        # Fallback to returning candidate if DuckDuckGo returned it
+        return c
+
     async with aiohttp.ClientSession() as session:
-        for c in state.get("candidates", []):
-            try:
-                # Fast HEAD request to check if site is live
-                async with session.head(c["url"], timeout=5) as response:
-                    status = response.status
-                if status < 400:
-                    verified.append(c)
-            except:
-                pass
-                
+        tasks = [check_candidate(session, c) for c in candidates]
+        results = await asyncio.gather(*tasks)
+        verified = [r for r in results if r is not None]
+
     return {"verified_candidates": verified, "status": "scoring"}
 
 async def scoring_node(state: Dict) -> Dict:

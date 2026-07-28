@@ -12,10 +12,11 @@ export default function AuditResults({ projectId }: { projectId: string }) {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const auditRes = await fetch(`http://localhost:8000/api/projects/${projectId}/seo-audit`);
+        const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+        const auditRes = await fetch(`${apiBase}/api/projects/${projectId}/seo-audit`);
         setAudit(await auditRes.json());
         
-        const oppRes = await fetch(`http://localhost:8000/api/projects/${projectId}/opportunities`);
+        const oppRes = await fetch(`${apiBase}/api/projects/${projectId}/opportunities`);
         setOpportunities(await oppRes.json());
       } catch (e) {
         console.error("Failed to load results", e);
