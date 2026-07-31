@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Search, Loader2 } from "lucide-react";
+import { API_BASE_URL } from "@/config/api";
 import AuditResults from "./AuditResults";
 
 export default function SeoAuditPage() {
@@ -17,9 +18,8 @@ export default function SeoAuditPage() {
     setProjectId(null);
 
     try {
-      const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
       const formattedUrl = url.startsWith("http") ? url : `https://${url}`;
-      const res = await fetch(`${apiBase}/api/projects`, {
+      const res = await fetch(`${API_BASE_URL}/api/projects`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url: formattedUrl }),
@@ -39,8 +39,7 @@ export default function SeoAuditPage() {
     if (projectId && status !== "done" && status !== "error") {
       interval = setInterval(async () => {
         try {
-          const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
-          const res = await fetch(`${apiBase}/api/projects/${projectId}/status`);
+          const res = await fetch(`${API_BASE_URL}/api/projects/${projectId}/status`);
           const data = await res.json();
           setStatus(data.status);
           if (data.status === "error") {

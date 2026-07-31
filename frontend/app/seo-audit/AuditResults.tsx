@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { AlertCircle, AlertTriangle, Info, CheckCircle2, FileText } from "lucide-react";
+import { API_BASE_URL } from "@/config/api";
 
 export default function AuditResults({ projectId }: { projectId: string }) {
   const [audit, setAudit] = useState<any>(null);
@@ -12,11 +13,10 @@ export default function AuditResults({ projectId }: { projectId: string }) {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
-        const auditRes = await fetch(`${apiBase}/api/projects/${projectId}/seo-audit`);
+        const auditRes = await fetch(`${API_BASE_URL}/api/projects/${projectId}/seo-audit`);
         setAudit(await auditRes.json());
         
-        const oppRes = await fetch(`${apiBase}/api/projects/${projectId}/opportunities`);
+        const oppRes = await fetch(`${API_BASE_URL}/api/projects/${projectId}/opportunities`);
         setOpportunities(await oppRes.json());
       } catch (e) {
         console.error("Failed to load results", e);

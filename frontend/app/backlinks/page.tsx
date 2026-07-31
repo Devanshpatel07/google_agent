@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Search, ExternalLink, Mail, Copy, Check, Sparkles, Shield, TrendingUp, Filter } from "lucide-react";
+import { API_BASE_URL } from "@/config/api";
 
 interface BacklinkItem {
   id?: string;
@@ -61,10 +62,9 @@ export default function BacklinksPage() {
     setLoading(true);
 
     try {
-      const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
       // Trigger project creation with keyword URL
       const searchUrl = keyword.startsWith("http") ? keyword : `https://${keyword.toLowerCase().replace(/[^a-z0-9]/g, "")}.com`;
-      const res = await fetch(`${apiBase}/api/projects`, {
+      const res = await fetch(`${API_BASE_URL}/api/projects`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url: searchUrl }),
@@ -75,7 +75,7 @@ export default function BacklinksPage() {
         let attempts = 0;
         const interval = setInterval(async () => {
           attempts++;
-          const oppRes = await fetch(`${apiBase}/api/projects/${data.project_id}/opportunities`);
+          const oppRes = await fetch(`${API_BASE_URL}/api/projects/${data.project_id}/opportunities`);
           if (oppRes.ok) {
             const oppData = await oppRes.json();
             if (oppData && oppData.length > 0) {
