@@ -24,6 +24,7 @@ class SEOIssue(BaseModel):
     severity: str = Field(description="high, medium, or low")
     explanation: str = Field(description="Explanation of the issue")
     fix_recommendation: str = Field(description="Actionable fix recommendation")
+    toxic_sites: List[str] = Field(default=[], description="List of flagged or toxic backlink domains/urls if applicable")
 
 class SEOReport(BaseModel):
     seo_errors: List[SEOIssue]
