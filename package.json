@@ -1,7 +1,7 @@
 {
-  "name": "backlink-hunter-ai",
+  "name": "seoexpert-agent",
   "version": "1.0.0",
-  "description": "Backlink Hunter AI Monorepo",
+  "description": "SEOExpert Autonomous AI Agent Monorepo",
   "private": true,
   "workspaces": [
     "frontend"
