@@ -198,7 +198,7 @@ async def scoring_node(state: Dict) -> Dict:
     return {"scored_opportunities": scored, "status": "drafting_outreach"}
 
 async def outreach_node(state: Dict) -> Dict:
-    logger.info("Drafting outreach...")
+    logger.info("Drafting targeted 60-90 word outreach pitches...")
     if "error" in state:
         return state
         
@@ -206,13 +206,31 @@ async def outreach_node(state: Dict) -> Dict:
         model_name = os.getenv("GROQ_MODEL", "llama-3.1-8b-instant")
         llm = ChatGroq(model=model_name, temperature=0.7)
         opportunities = state.get("scored_opportunities", [])
+        target_title = state.get("title", "our platform")
+        
         for opp in opportunities:
-            prompt = f"Write a very short, polite 3-sentence email pitching a guest post to the owner of {opp['domain']}. Return only the email content."
-            res = await llm.ainvoke(prompt)
-            opp["outreach_draft"] = res.content
+            domain = opp['domain']
+            prompt = f"""
+            You are "Backlink Hunter AI", an autonomous SEO research agent.
+            Write a 60-90 word cold outreach pitch to the editor of {domain} offering a guest post or editorial contribution related to {target_title}.
+            
+            Requirements:
+            - Reference something specific about {domain}.
+            - Propose a concrete article idea tailored to their audience.
+            - Include one credibility line about {target_title}.
+            - End with a soft, low-pressure call to action.
+            - No placeholder brackets, no fake stats. Return ONLY the pitch text.
+            """
+            try:
+                res = await llm.ainvoke(prompt)
+                opp["outreach_draft"] = res.content.strip()
+            except Exception:
+                opp["outreach_draft"] = f"Hi Editor,\n\nI've been following {domain}'s coverage on tech and growth. I've put together a guest guide on automated SEO workflows inspired by {target_title}.\n\nWould you be open to reviewing a draft for your readers?\n\nBest regards,"
+                
         return {"final_opportunities": opportunities, "status": "done"}
-    except:
+    except Exception as e:
+        logger.error(f"Outreach generation error: {e}")
         opportunities = state.get("scored_opportunities", [])
         for opp in opportunities:
-            opp["outreach_draft"] = f"Hi,\n\nI loved your recent posts on {opp['domain']}. Would you be open to a guest contribution?\n\nThanks!"
+            opp["outreach_draft"] = f"Hi Editor,\n\nI loved your recent posts on {opp['domain']}. Would you be open to a guest contribution?\n\nThanks!"
         return {"final_opportunities": opportunities, "status": "done"}
