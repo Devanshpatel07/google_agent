@@ -6,6 +6,9 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "SEOExpert AI - Autonomous SEO Audit & Backlink Agent",
   description: "Autonomous SEO Agent for Domain Auditing, Toxic Link Detection, and AI Outreach",
+  verification: {
+    google: process.env.NEXT_PUBLIC_GOOGLE_VERIFICATION || "",
+  },
 };
 
 export default function RootLayout({
