@@ -65,7 +65,12 @@ export default function SeoAuditPage() {
       const data = await res.json();
       setProjectId(data.project_id);
     } catch (err: any) {
-      setErrorMsg(err.message || "Unable to connect to backend server.");
+      const isVercelLive = typeof window !== "undefined" && window.location.hostname.includes("vercel.app");
+      if (isVercelLive && !process.env.NEXT_PUBLIC_API_URL) {
+        setErrorMsg("Backend connection required for Vercel: Please add 'NEXT_PUBLIC_API_URL' in your Vercel Project Settings pointing to your deployed FastAPI backend URL.");
+      } else {
+        setErrorMsg(err.message || "Unable to connect to backend server. Make sure Python backend is running on http://localhost:8000.");
+      }
       setStatus(null);
     }
   };
