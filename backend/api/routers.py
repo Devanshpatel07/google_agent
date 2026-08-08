@@ -70,6 +70,12 @@ async def process_project_task(project_id: str, url: str, db: AsyncSession):
             project.error_message = str(e)
             await db.commit()
 
+@router.get("/projects")
+async def list_projects(db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(Project).order_by(Project.created_at.desc()))
+    projects = result.scalars().all()
+    return [{"project_id": p.project_id, "url": p.url, "status": p.status, "created_at": p.created_at} for p in projects]
+
 @router.post("/projects", response_model=ProjectResponse)
 async def create_project(req: ProjectRequest, background_tasks: BackgroundTasks, db: AsyncSession = Depends(get_db)):
     project_id = str(uuid.uuid4())

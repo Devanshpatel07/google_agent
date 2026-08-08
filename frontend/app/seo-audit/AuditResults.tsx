@@ -110,17 +110,8 @@ export default function AuditResults({ projectId }: { projectId: string }) {
   };
 
   const getToxicSites = (issue: any): string[] => {
-    if (issue.toxic_sites && issue.toxic_sites.length > 0) {
+    if (issue.toxic_sites && Array.isArray(issue.toxic_sites) && issue.toxic_sites.length > 0) {
       return issue.toxic_sites;
-    }
-    if (/toxic|backlink|subnet|disavow/i.test(issue.issue || "") || /toxic|backlink|subnet|disavow/i.test(issue.explanation || "")) {
-      return [
-        "spam-network-01.xyz",
-        "link-farm-hub.net",
-        "lowtrust-subnet-88.org",
-        "toxic-referral-seo.info",
-        "pbn-backlinks-auto.biz"
-      ];
     }
     return [];
   };

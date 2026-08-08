@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Search, ExternalLink, Mail, Copy, Check, Sparkles, Shield, TrendingUp, Filter } from "lucide-react";
 
 interface BacklinkItem {
@@ -13,47 +13,36 @@ interface BacklinkItem {
   outreach_draft?: string;
 }
 
-const DEFAULT_OPPORTUNITIES: BacklinkItem[] = [
-  {
-    domain: "techcrunch.com",
-    url: "https://techcrunch.com/submit",
-    score: 95,
-    relevance: "High",
-    spam_risk: "Low",
-    outreach_draft: "Hi Editor,\n\nI loved your recent coverage on AI automation. I've prepared a comprehensive guide on modern agentic workflows that would be a perfect fit for TechCrunch readers.\n\nBest regards,\nAuthor"
-  },
-  {
-    domain: "hackernoon.com",
-    url: "https://hackernoon.com/write",
-    score: 88,
-    relevance: "High",
-    spam_risk: "Low",
-    outreach_draft: "Hello HackerNoon Team,\n\nI'm pitching a technical breakdown on high-performance web scrapers and SEO automation. Would love to submit this as a guest post.\n\nCheers!"
-  },
-  {
-    domain: "smashingmagazine.com",
-    url: "https://www.smashingmagazine.com/write-for-us",
-    score: 84,
-    relevance: "Medium",
-    spam_risk: "Low",
-    outreach_draft: "Hi Smashing Mag Team,\n\nI have an in-depth tutorial on Next.js 15 performance optimization ready for review. Let me know if you'd be interested in publishing this!\n\nThanks!"
-  },
-  {
-    domain: "dev.to",
-    url: "https://dev.to/new",
-    score: 82,
-    relevance: "High",
-    spam_risk: "Low",
-    outreach_draft: "Hey Dev Community,\n\nCheck out this guest article on automated SEO auditing algorithms built with FastAPI and Playwright.\n\nBest!"
-  }
-];
-
 export default function BacklinksPage() {
   const [keyword, setKeyword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [opportunities, setOpportunities] = useState<BacklinkItem[]>(DEFAULT_OPPORTUNITIES);
+  const [opportunities, setOpportunities] = useState<BacklinkItem[]>([]);
   const [copiedDomain, setCopiedDomain] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"all" | "high">("all");
+
+  useEffect(() => {
+    const fetchLatestOpportunities = async () => {
+      try {
+        const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+        // Fetch real opportunities from active backend database
+        const res = await fetch(`${apiBase}/api/projects`);
+        if (res.ok) {
+          const projects = await res.json();
+          if (projects && projects.length > 0) {
+            const latestProject = projects[0];
+            const oppRes = await fetch(`${apiBase}/api/projects/${latestProject.project_id}/opportunities`);
+            if (oppRes.ok) {
+              const data = await oppRes.json();
+              setOpportunities(data || []);
+            }
+          }
+        }
+      } catch {
+        // Fallback gracefully
+      }
+    };
+    fetchLatestOpportunities();
+  }, []);
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
