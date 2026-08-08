@@ -12,12 +12,37 @@ from backend.crawler.playwright_setup import fetch_html
 load_dotenv()
 
 from langchain_groq import ChatGroq
+try:
+    from langchain_google_genai import ChatGoogleGenerativeAI
+except ImportError:
+    ChatGoogleGenerativeAI = None
+
 from langchain_core.prompts import PromptTemplate
 from pydantic import BaseModel, Field
 from duckduckgo_search import DDGS
 import aiohttp
 
 logger = logging.getLogger(__name__)
+
+def get_llm(temperature: float = 0):
+    gemini_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
+    if gemini_key and ChatGoogleGenerativeAI is not None:
+        logger.info("Initializing Google Gemini API (gemini-1.5-flash)...")
+        model_name = os.getenv("GEMINI_MODEL", "gemini-1.5-flash")
+        return ChatGoogleGenerativeAI(
+            model=model_name,
+            google_api_key=gemini_key,
+            temperature=temperature
+        )
+    
+    groq_key = os.getenv("GROQ_API_KEY")
+    if groq_key:
+        logger.info("Initializing Groq API (llama-3.1-8b-instant)...")
+        model_name = os.getenv("GROQ_MODEL", "llama-3.1-8b-instant")
+        return ChatGroq(model=model_name, temperature=temperature)
+        
+    # Fallback to Groq if key present or default
+    return ChatGroq(model="llama-3.1-8b-instant", temperature=temperature)
 
 class SEOIssue(BaseModel):
     issue: str = Field(description="Short title of the SEO issue")
@@ -68,8 +93,7 @@ async def audit_node(state: Dict) -> Dict:
         return state
         
     try:
-        model_name = os.getenv("GROQ_MODEL", "llama-3.1-8b-instant")
-        llm = ChatGroq(model=model_name, temperature=0)
+        llm = get_llm(temperature=0)
         structured_llm = llm.with_structured_output(SEOReport, method="json_mode")
         
         prompt = f"""
@@ -203,8 +227,7 @@ async def outreach_node(state: Dict) -> Dict:
         return state
         
     try:
-        model_name = os.getenv("GROQ_MODEL", "llama-3.1-8b-instant")
-        llm = ChatGroq(model=model_name, temperature=0.7)
+        llm = get_llm(temperature=0.7)
         opportunities = state.get("scored_opportunities", [])
         target_title = state.get("title", "our platform")
         

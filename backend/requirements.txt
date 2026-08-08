@@ -17,3 +17,5 @@ duckduckgo-search
 aiohttp
 python-dotenv
 langchain-groq
+langchain-google-genai
+google-generativeai
