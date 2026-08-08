@@ -111,22 +111,48 @@ async def audit_node(state: Dict) -> Dict:
         return {"seo_errors": [{"issue": "API Key Missing or Error", "severity": "high", "explanation": str(e), "fix_recommendation": "Check backend/.env for GROQ_API_KEY"}], "status": "finding_backlinks"}
 
 async def backlink_discovery_node(state: Dict) -> Dict:
-    logger.info("Discovering backlinks...")
+    logger.info("Discovering rich backlink opportunities across multiple search footprints...")
     if "error" in state:
         return state
         
-    keyword = str(state.get("title", "")).split()[0] if state.get("title") else "technology"
-    search_query = f'{keyword} "write for us" OR "guest post"'
+    raw_title = state.get("title", "")
+    meta_desc = state.get("meta_description", "")
+    
+    # Extract clean niche keywords
+    words = [w.strip() for w in (raw_title + " " + meta_desc).split() if len(w.strip()) > 3]
+    primary_keyword = words[0] if words else "technology"
+    secondary_keyword = words[1] if len(words) > 1 else "business"
+    
+    # Multiple guest post search footprints
+    search_queries = [
+        f'{primary_keyword} "write for us" OR "guest post"',
+        f'{secondary_keyword} "submit guest post" OR "guest article"',
+        f'{primary_keyword} "become a contributor" OR "editorial guidelines"'
+    ]
     
     candidates = []
+    seen_domains = set()
+    
     try:
-        results = DDGS().text(search_query, max_results=5)
-        for r in results:
-            candidates.append({"domain": r.get('title', 'Unknown'), "url": r.get('href')})
+        ddgs = DDGS()
+        for query in search_queries:
+            results = ddgs.text(query, max_results=10)
+            for r in results:
+                url = r.get('href', '')
+                title = r.get('title', 'Unknown')
+                if url:
+                    domain = url.split("//")[-1].split("/")[0].replace("www.", "")
+                    if domain and domain not in seen_domains:
+                        seen_domains.add(domain)
+                        candidates.append({"domain": title or domain, "url": url})
+                if len(candidates) >= 15:
+                    break
+            if len(candidates) >= 15:
+                break
     except Exception as e:
         logger.error(f"Search error: {e}")
         
-    return {"candidates": candidates[:5], "status": "verifying"}
+    return {"candidates": candidates[:15], "status": "verifying"}
 
 async def verification_node(state: Dict) -> Dict:
     logger.info("Verifying backlinks in parallel...")
